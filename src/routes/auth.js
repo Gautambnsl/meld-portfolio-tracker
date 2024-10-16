@@ -1,6 +1,7 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+const { verifyToken } = require('../middleware/verify');
 const router = express.Router();
 
 // Signup Route
@@ -41,6 +42,22 @@ router.post('/login', async (req, res) => {
 
     res.json({ token });
   } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
+router.post('/user/email', verifyToken, async (req, res) => {
+  const  userId = req.userId; 
+  try {
+    const user = await User.findById(userId).select('email'); // Fetch user email
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({ email: user.email });
+  } catch (error) {
+    console.error(error);
     res.status(500).json({ message: 'Server error' });
   }
 });
